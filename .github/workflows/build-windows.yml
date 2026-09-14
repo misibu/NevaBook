@@ -60,10 +60,11 @@ jobs:
           # so all thumbnails formed one horizontal row. Let ListBox own scrolling instead.
           $xamlPath = Join-Path $env:PROJECT_DIR 'MainWindow.xaml'
           $xaml = [System.IO.File]::ReadAllText($xamlPath, [System.Text.Encoding]::UTF8)
+          $photoListReplacement = "<ListBox x:Name=`"PhotoList`"`r`n                                 ScrollViewer.VerticalScrollBarVisibility=`"Auto`"`r`n                                 ScrollViewer.HorizontalScrollBarVisibility=`"Disabled`""
           $xaml = [regex]::Replace(
             $xaml,
             '(?s)<ScrollViewer VerticalScrollBarVisibility="Auto">\s*<ListBox x:Name="PhotoList"',
-            '<ListBox x:Name="PhotoList"`r`n                                 ScrollViewer.VerticalScrollBarVisibility="Auto"`r`n                                 ScrollViewer.HorizontalScrollBarVisibility="Disabled"')
+            $photoListReplacement)
           $xaml = [regex]::Replace($xaml, '(?s)</ListBox>\s*</ScrollViewer>', '</ListBox>', 1)
           [System.IO.File]::WriteAllText($xamlPath, $xaml, $utf8NoBom)
 
