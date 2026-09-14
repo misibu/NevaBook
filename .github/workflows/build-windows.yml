@@ -28,6 +28,21 @@ jobs:
           "PROJECT_DIR=$projectDir" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
           Write-Host "Project directory: $projectDir"
 
+      - name: Patch source compatibility fixes
+        shell: powershell
+        run: |
+          $spread = Join-Path $env:PROJECT_DIR 'Controls\SpreadCanvas.cs'
+          $text = Get-Content -LiteralPath $spread -Raw
+          $text = $text.Replace('private readonly BitmapCache _cache = new();', 'private readonly NevaBook.Services.BitmapCache _cache = new();')
+          Set-Content -LiteralPath $spread -Value $text -Encoding UTF8
+
+          $importer = Join-Path $env:PROJECT_DIR 'Services\ImageImportService.cs'
+          $text = Get-Content -LiteralPath $importer -Raw
+          if (-not $text.Contains('using System.IO;')) {
+            $text = "using System.IO;`r`n" + $text
+          }
+          Set-Content -LiteralPath $importer -Value $text -Encoding UTF8
+
       - name: Setup .NET 8
         uses: actions/setup-dotnet@v4
         with:
