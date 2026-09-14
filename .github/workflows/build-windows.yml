@@ -14,19 +14,19 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Check source archive
+      - name: Find and extract source archive
         shell: powershell
         run: |
-          if (-not (Test-Path "NevaBook_Native_1.1_Source.zip")) {
-            Write-Error "Upload NevaBook_Native_1.1_Source.zip to the repository root first."
-          }
-
-      - name: Extract source
-        shell: powershell
-        run: |
+          $zip = Get-ChildItem -Path . -Filter 'NevaBook_Native_1.1_Source*.zip' | Select-Object -First 1
+          if (-not $zip) { throw 'Source ZIP was not found in repository root.' }
+          Write-Host "Using archive: $($zip.Name)"
           New-Item -ItemType Directory -Force -Path buildsrc | Out-Null
-          Expand-Archive -Path "NevaBook_Native_1.1_Source.zip" -DestinationPath buildsrc -Force
-          Get-ChildItem buildsrc
+          Expand-Archive -LiteralPath $zip.FullName -DestinationPath buildsrc -Force
+          $project = Get-ChildItem -Path buildsrc -Recurse -Filter NevaBook.csproj | Select-Object -First 1
+          if (-not $project) { throw 'NevaBook.csproj was not found after extraction.' }
+          $projectDir = $project.Directory.FullName
+          "PROJECT_DIR=$projectDir" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          Write-Host "Project directory: $projectDir"
 
       - name: Setup .NET 8
         uses: actions/setup-dotnet@v4
@@ -34,44 +34,53 @@ jobs:
           dotnet-version: "8.0.x"
 
       - name: Restore
-        working-directory: buildsrc/NevaBook_Native_1.1
-        run: dotnet restore NevaBook.csproj
+        shell: powershell
+        run: |
+          Push-Location $env:PROJECT_DIR
+          dotnet restore NevaBook.csproj
+          Pop-Location
 
       - name: Publish portable EXE
-        working-directory: buildsrc/NevaBook_Native_1.1
-        shell: cmd
-        run: >
-          dotnet publish NevaBook.csproj -c Release -r win-x64 --self-contained true
-          -p:PublishProfile=Portable -o publish\portable
+        shell: powershell
+        run: |
+          Push-Location $env:PROJECT_DIR
+          dotnet publish NevaBook.csproj -c Release -r win-x64 --self-contained true -p:PublishProfile=Portable -o publish/portable
+          Pop-Location
 
       - name: Publish installed files
-        working-directory: buildsrc/NevaBook_Native_1.1
-        shell: cmd
-        run: >
-          dotnet publish NevaBook.csproj -c Release -r win-x64 --self-contained true
-          -p:PublishProfile=Installed -o publish\installed
+        shell: powershell
+        run: |
+          Push-Location $env:PROJECT_DIR
+          dotnet publish NevaBook.csproj -c Release -r win-x64 --self-contained true -p:PublishProfile=Installed -o publish/installed
+          Pop-Location
 
-      - name: Prepare artifacts
+      - name: Prepare portable artifact
         shell: powershell
         run: |
           New-Item -ItemType Directory -Force -Path artifacts | Out-Null
-          Copy-Item "buildsrc/NevaBook_Native_1.1/publish/portable/Neva-Book1.1.exe" "artifacts/Neva-Book1.1_Portable.exe"
+          Copy-Item (Join-Path $env:PROJECT_DIR 'publish/portable/Neva-Book1.1.exe') 'artifacts/Neva-Book1.1_Portable.exe'
 
       - name: Install Inno Setup
         shell: powershell
         run: choco install innosetup --yes --no-progress
 
       - name: Build installer
-        working-directory: buildsrc/NevaBook_Native_1.1
-        shell: cmd
-        run: '"C:\Program Files (x86)\Inno Setup 6\ISCC.exe" Installer\NevaBook.iss'
+        shell: powershell
+        run: |
+          $iscc = 'C:\Program Files (x86)\Inno Setup 6\ISCC.exe'
+          if (-not (Test-Path $iscc)) { $iscc = 'C:\Program Files\Inno Setup 6\ISCC.exe' }
+          if (-not (Test-Path $iscc)) { throw 'Inno Setup compiler not found.' }
+          Push-Location $env:PROJECT_DIR
+          & $iscc 'Installer\NevaBook.iss'
+          if ($LASTEXITCODE -ne 0) { throw "Inno Setup failed with code $LASTEXITCODE" }
+          Pop-Location
 
       - name: Copy installer
         shell: powershell
         run: |
-          $setup = Get-ChildItem -Path "buildsrc/NevaBook_Native_1.1" -Recurse -Filter "Neva-Book1.1_Setup.exe" | Select-Object -First 1
-          if (-not $setup) { throw "Installer was not created." }
-          Copy-Item $setup.FullName "artifacts/Neva-Book1.1_Setup.exe"
+          $setup = Get-ChildItem -Path $env:PROJECT_DIR -Recurse -Filter 'Neva-Book1.1_Setup.exe' | Select-Object -First 1
+          if (-not $setup) { throw 'Installer was not created.' }
+          Copy-Item $setup.FullName 'artifacts/Neva-Book1.1_Setup.exe'
 
       - name: Upload ready Windows files
         uses: actions/upload-artifact@v4
