@@ -28,32 +28,59 @@ jobs:
           "PROJECT_DIR=$projectDir" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
           Write-Host "Project directory: $projectDir"
 
-      - name: Patch source compatibility fixes
+      - name: Patch source compatibility and UI fixes
         shell: powershell
         run: |
-          # Add System.IO globally for Path/File/Stream/MemoryStream used across the native port.
-          Set-Content -LiteralPath (Join-Path $env:PROJECT_DIR 'GlobalUsings.cs') -Value 'global using System.IO;' -Encoding UTF8
+          # IMPORTANT: source files contain Russian text and are UTF-8 without BOM.
+          # Windows PowerShell 5.1 Get-Content defaults to the legacy ANSI code page,
+          # so use .NET UTF-8 APIs explicitly to avoid mojibake in dynamic UI strings.
+          $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
 
-          # WPF also has System.Windows.Media.BitmapCache; explicitly use our cache class.
+          # Add System.IO globally for Path/File/Stream/MemoryStream used across the native port.
+          [System.IO.File]::WriteAllText(
+            (Join-Path $env:PROJECT_DIR 'GlobalUsings.cs'),
+            'global using System.IO;',
+            $utf8NoBom)
+
+          # Spread rendering: use WPF device-independent image dimensions (bitmap.Width/Height)
+          # for ImageBrush absolute viewboxes. PixelWidth/PixelHeight made 300-DPI images render tiny.
           $spread = Join-Path $env:PROJECT_DIR 'Controls\SpreadCanvas.cs'
-          $text = Get-Content -LiteralPath $spread -Raw
+          $text = [System.IO.File]::ReadAllText($spread, [System.Text.Encoding]::UTF8)
           $text = $text.Replace('private readonly BitmapCache _cache = new();', 'private readonly NevaBook.Services.BitmapCache _cache = new();')
-          Set-Content -LiteralPath $spread -Value $text -Encoding UTF8
+          $text = $text.Replace('double srcW = bitmap.PixelWidth;', 'double srcW = bitmap.Width;')
+          $text = $text.Replace('double srcH = bitmap.PixelHeight;', 'double srcH = bitmap.Height;')
+          $text = $text.Replace('double srcAspect = bitmap.PixelWidth / (double)Math.Max(1, bitmap.PixelHeight);', 'double srcAspect = bitmap.Width / Math.Max(1.0, bitmap.Height);')
+          $text = $text.Replace('double cropW = bitmap.PixelHeight * slotAspect;', 'double cropW = bitmap.Height * slotAspect;')
+          $text = $text.Replace('double maxVisualShift = cell.Width * Math.Max(0.0001, bitmap.PixelWidth / cropW - 1.0);', 'double maxVisualShift = cell.Width * Math.Max(0.0001, bitmap.Width / cropW - 1.0);')
+          $text = $text.Replace('double cropH = bitmap.PixelWidth / slotAspect;', 'double cropH = bitmap.Width / slotAspect;')
+          $text = $text.Replace('double maxVisualShift = cell.Height * Math.Max(0.0001, bitmap.PixelHeight / cropH - 1.0);', 'double maxVisualShift = cell.Height * Math.Max(0.0001, bitmap.Height / cropH - 1.0);')
+          [System.IO.File]::WriteAllText($spread, $text, $utf8NoBom)
+
+          # Left photo library: the outer ScrollViewer gave the WrapPanel infinite width,
+          # so all thumbnails formed one horizontal row. Let ListBox own scrolling instead.
+          $xamlPath = Join-Path $env:PROJECT_DIR 'MainWindow.xaml'
+          $xaml = [System.IO.File]::ReadAllText($xamlPath, [System.Text.Encoding]::UTF8)
+          $xaml = [regex]::Replace(
+            $xaml,
+            '(?s)<ScrollViewer VerticalScrollBarVisibility="Auto">\s*<ListBox x:Name="PhotoList"',
+            '<ListBox x:Name="PhotoList"`r`n                                 ScrollViewer.VerticalScrollBarVisibility="Auto"`r`n                                 ScrollViewer.HorizontalScrollBarVisibility="Disabled"')
+          $xaml = [regex]::Replace($xaml, '(?s)</ListBox>\s*</ScrollViewer>', '</ListBox>', 1)
+          [System.IO.File]::WriteAllText($xamlPath, $xaml, $utf8NoBom)
 
           # Magick.NET 14 API compatibility fixes.
           $raster = Join-Path $env:PROJECT_DIR 'Services\SpreadRasterizer.cs'
-          $text = Get-Content -LiteralPath $raster -Raw
+          $text = [System.IO.File]::ReadAllText($raster, [System.Text.Encoding]::UTF8)
           $text = $text.Replace('                image.RePage();', '')
           $text = $text.Replace('        canvas.Quality = quality;', '        canvas.Quality = (uint)quality;')
-          Set-Content -LiteralPath $raster -Value $text -Encoding UTF8
+          [System.IO.File]::WriteAllText($raster, $text, $utf8NoBom)
 
           # C# definite-assignment: chained && can short-circuit before all out parameters are assigned.
           $main = Join-Path $env:PROJECT_DIR 'MainWindow.xaml.cs'
-          $text = Get-Content -LiteralPath $main -Raw
+          $text = [System.IO.File]::ReadAllText($main, [System.Text.Encoding]::UTF8)
           $pattern = '(?s)(private bool TryReadSettings\(\s*out double w, out double h, out double gap, out int dpi, out int spreadCount\)\s*\{)\s*bool ok ='
           $replacement = '${1}' + "`r`n        w = 0; h = 0; gap = 0; dpi = 0; spreadCount = 0;`r`n        bool ok ="
           $text = [regex]::Replace($text, $pattern, $replacement)
-          Set-Content -LiteralPath $main -Value $text -Encoding UTF8
+          [System.IO.File]::WriteAllText($main, $text, $utf8NoBom)
 
       - name: Setup .NET 8
         uses: actions/setup-dotnet@v4
