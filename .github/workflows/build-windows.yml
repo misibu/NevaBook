@@ -31,17 +31,29 @@ jobs:
       - name: Patch source compatibility fixes
         shell: powershell
         run: |
+          # Add System.IO globally for Path/File/Stream/MemoryStream used across the native port.
+          Set-Content -LiteralPath (Join-Path $env:PROJECT_DIR 'GlobalUsings.cs') -Value 'global using System.IO;' -Encoding UTF8
+
+          # WPF also has System.Windows.Media.BitmapCache; explicitly use our cache class.
           $spread = Join-Path $env:PROJECT_DIR 'Controls\SpreadCanvas.cs'
           $text = Get-Content -LiteralPath $spread -Raw
           $text = $text.Replace('private readonly BitmapCache _cache = new();', 'private readonly NevaBook.Services.BitmapCache _cache = new();')
           Set-Content -LiteralPath $spread -Value $text -Encoding UTF8
 
-          $importer = Join-Path $env:PROJECT_DIR 'Services\ImageImportService.cs'
-          $text = Get-Content -LiteralPath $importer -Raw
-          if (-not $text.Contains('using System.IO;')) {
-            $text = "using System.IO;`r`n" + $text
-          }
-          Set-Content -LiteralPath $importer -Value $text -Encoding UTF8
+          # Magick.NET 14 API compatibility fixes.
+          $raster = Join-Path $env:PROJECT_DIR 'Services\SpreadRasterizer.cs'
+          $text = Get-Content -LiteralPath $raster -Raw
+          $text = $text.Replace('                image.RePage();', '')
+          $text = $text.Replace('        canvas.Quality = quality;', '        canvas.Quality = (uint)quality;')
+          Set-Content -LiteralPath $raster -Value $text -Encoding UTF8
+
+          # C# definite-assignment: chained && can short-circuit before all out parameters are assigned.
+          $main = Join-Path $env:PROJECT_DIR 'MainWindow.xaml.cs'
+          $text = Get-Content -LiteralPath $main -Raw
+          $pattern = '(?s)(private bool TryReadSettings\(\s*out double w, out double h, out double gap, out int dpi, out int spreadCount\)\s*\{)\s*bool ok ='
+          $replacement = '${1}' + "`r`n        w = 0; h = 0; gap = 0; dpi = 0; spreadCount = 0;`r`n        bool ok ="
+          $text = [regex]::Replace($text, $pattern, $replacement)
+          Set-Content -LiteralPath $main -Value $text -Encoding UTF8
 
       - name: Setup .NET 8
         uses: actions/setup-dotnet@v4
