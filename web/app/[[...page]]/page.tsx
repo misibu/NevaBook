@@ -16,6 +16,6 @@ export default async function CmsPage({
   const search = await searchParams;
   const urlPath = `/${page?.join("/") || ""}`;
   const content = await fetchOneEntry({ model: "page", apiKey, userAttributes: { urlPath } });
-  if (!content && !isPreviewing(search)) notFound();
+  if (!content && !isPreviewing(new URLSearchParams(search))) notFound();
   return <Content content={content} model="page" apiKey={apiKey} />;
 }
