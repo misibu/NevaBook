@@ -1,0 +1,27 @@
+name: Web and API checks
+on:
+  push:
+    branches: [ main, feature/web-foundation ]
+    paths: [ 'web/**', 'api/**', '.github/workflows/web-api-ci.yml' ]
+  pull_request:
+    paths: [ 'web/**', 'api/**', '.github/workflows/web-api-ci.yml' ]
+jobs:
+  web:
+    runs-on: ubuntu-latest
+    defaults: { run: { working-directory: web } }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - run: npm install
+      - run: npm run typecheck
+      - run: npm run build
+  api:
+    runs-on: ubuntu-latest
+    defaults: { run: { working-directory: api } }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v5
+        with: { dotnet-version: '10.0.x' }
+      - run: dotnet restore
+      - run: dotnet build --no-restore -c Release
