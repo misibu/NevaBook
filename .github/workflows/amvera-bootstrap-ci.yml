@@ -1,0 +1,15 @@
+name: Amvera bootstrap image check
+on:
+  push:
+    branches: [ 'deploy/amvera-web' ]
+    paths:
+      - 'deploy/amvera-bootstrap.Dockerfile'
+      - '.github/workflows/amvera-bootstrap-ci.yml'
+
+jobs:
+  docker-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build self-fetching Amvera image
+        run: docker build -f deploy/amvera-bootstrap.Dockerfile -t neva-book-amvera-bootstrap:check .
