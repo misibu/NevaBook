@@ -1,0 +1,11 @@
+{
+  "name": "Neva-Book — новый заказ",
+  "nodes": [
+    {"parameters":{"httpMethod":"POST","path":"neva-book-new-order","responseMode":"onReceived"},"id":"webhook","name":"New order webhook","type":"n8n-nodes-base.webhook","typeVersion":2,"position":[260,300]},
+    {"parameters":{"chatId":"={{$env.TELEGRAM_CHAT_ID}}","text":"=🟢 Новый заказ Neva-Book {{$json.number}}\\n{{$json.customerName}}\\n{{$json.format}} / {{$json.coverType}}\\n{{$json.email}} {{$json.phone}}"},"id":"telegram","name":"Telegram","type":"n8n-nodes-base.telegram","typeVersion":1.2,"position":[520,220]},
+    {"parameters":{"method":"POST","url":"={{$env.CRM_WEBHOOK_URL}}","sendBody":true,"contentType":"raw","rawContentType":"application/json","body":"={{JSON.stringify($json)}}"},"id":"crm","name":"CRM webhook","type":"n8n-nodes-base.httpRequest","typeVersion":4.2,"position":[520,380]}
+  ],
+  "connections":{"New order webhook":{"main":[[{"node":"Telegram","type":"main","index":0},{"node":"CRM webhook","type":"main","index":0}]]}},
+  "active": false,
+  "settings": {}
+}
