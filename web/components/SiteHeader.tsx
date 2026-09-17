@@ -1,4 +1,3 @@
-import Image from "next/image";
 import Link from "next/link";
 import styles from "./SiteHeader.module.css";
 
@@ -6,7 +5,14 @@ export function SiteHeader() {
   return (
     <header className={styles.header}>
       <Link className={styles.brandWrap} href="/" aria-label="Нева-Бук — главная">
-        <Image className={styles.logo} src="/brand/neva-book-header-logo.png" alt="Нева-Бук" width={700} height={233} priority />
+        <img
+          className={styles.logo}
+          src="/brand/neva-book-header-logo.png?v=3"
+          alt="Нева-Бук"
+          width="1100"
+          height="366"
+          loading="eager"
+        />
         <span className={styles.founded}>Основано в 2003 году</span>
       </Link>
       <div className={styles.right}>
