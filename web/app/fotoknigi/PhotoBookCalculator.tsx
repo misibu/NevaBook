@@ -24,7 +24,7 @@ const money = (value: number) => `${new Intl.NumberFormat("ru-RU").format(value)
 export function PhotoBookCalculator() {
   const [size, setSize] = useState<BookSize>("20x20");
   const [cover, setCover] = useState<CoverType>("photo");
-  const [spreads, setSpreads] = useState(5);
+  const [spreads, setSpreads] = useState(10);
 
   const price = useMemo(() => {
     return BASE_PRICE
@@ -81,7 +81,7 @@ export function PhotoBookCalculator() {
       <section className={styles.calculatorSection} id="calculator">
         <div className={styles.sectionHeading}>
           <div><span>КАЛЬКУЛЯТОР</span><h2>Рассчитайте фотокнигу</h2></div>
-          <p>Базовая стоимость — {money(BASE_PRICE)} за формат 20×20, фотообложку и 5 разворотов.</p>
+          <p>Базовая стоимость — {money(BASE_PRICE)} за формат 20×20, фотообложку и 5 разворотов. По умолчанию калькулятор открывается на 10 разворотах.</p>
         </div>
 
         <div className={styles.calculatorGrid}>
