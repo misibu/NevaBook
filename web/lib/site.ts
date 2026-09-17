@@ -1,7 +1,7 @@
 export const siteConfig = {
-  name: "Neva-Book",
+  name: "Нева-Бук",
   description:
-    "Фотокниги онлайн: загрузите фотографии, соберите макет самостоятельно или доверьте раскладку Neva-Book.",
+    "Нева-Бук — фотокниги онлайн, печать на холсте, переплётные работы и реставрация фотографий.",
   url: process.env.NEXT_PUBLIC_SITE_URL || "https://neva-book.ru",
   apiUrl: process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080",
 };
