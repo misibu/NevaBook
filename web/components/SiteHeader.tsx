@@ -5,22 +5,14 @@ export function SiteHeader() {
   return (
     <header className={styles.header}>
       <Link className={styles.brandWrap} href="/" aria-label="Нева-Бук — главная">
-        <span className={styles.logoBox} aria-hidden="true">
-          <img
-            className={styles.logoFallback}
-            src="/brand/neva-book-logo.svg?v=20260917c"
-            alt=""
-            loading="eager"
-          />
-          <img
-            className={styles.logoExact}
-            src="/brand/neva-book-header-logo.png?v=20260917c"
-            alt=""
-            width="700"
-            height="233"
-            loading="eager"
-          />
-        </span>
+        <img
+          className={styles.logo}
+          src="/brand/neva-book-full-logo.webp?v=20260917d"
+          alt="Нева-Бук — фотокниги, реставрация фото, переплёт"
+          width="800"
+          height="266"
+          loading="eager"
+        />
         <span className={styles.founded}>Основано в 2003 году</span>
       </Link>
       <div className={styles.right}>
