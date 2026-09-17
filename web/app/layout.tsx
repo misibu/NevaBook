@@ -4,6 +4,7 @@ import { siteConfig } from "@/lib/site";
 import "./globals.css";
 import "./premium-v2.css";
 import "./editor-viewport-fix.css";
+import "./editor-tools-v3.css";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteConfig.url),
