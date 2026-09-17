@@ -165,7 +165,7 @@ export function EditorPrototype() {
     if (!target || target.photoId === photoId) return;
     pushUndo();
     const next = cloneSpreads(spreads);
-    let source: { s: number; i: number } | null = null;
+    let source: any = null;
     next.some((sp, s) => sp.items.some((item, i) => {
       if (item.photoId === photoId) { source = { s, i }; return true; }
       return false;
