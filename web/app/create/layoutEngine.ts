@@ -7,7 +7,7 @@ export type PhotoAsset = {
 };
 
 export type Rect = { x: number; y: number; w: number; h: number };
-export type PlacedPhoto = { photoId: string; rect: Rect; focusX: number; focusY: number };
+export type PlacedPhoto = { photoId: string; rect: Rect; focusX: number; focusY: number; zoom: number };
 export type Spread = {
   id: string;
   items: PlacedPhoto[];
@@ -127,13 +127,14 @@ function signature(rects: Rect[]) {
 
 export function buildLayoutVariants(photos: PhotoAsset[], pageW = 406, pageH = 206, gap = 2, seed = Date.now(), targetCount = 36): Rect[][] {
   if (!photos.length) return [];
+  const safeGap = Math.max(1, Math.min(5, gap));
   const master = mulberry32(seed);
   const seen = new Set<string>();
   const scored: { score: number; rects: Rect[] }[] = [];
   const attempts = Math.max(180, targetCount * 8);
   for (let i = 0; i < attempts; i++) {
     const rnd = mulberry32(Math.floor(master() * 2_000_000_000) + 1);
-    const rects = cleanRecursiveRects(0, 0, pageW, pageH, photos.length, gap, rnd);
+    const rects = cleanRecursiveRects(0, 0, pageW, pageH, photos.length, safeGap, rnd);
     const sig = signature(rects);
     if (seen.has(sig)) continue;
     seen.add(sig);
@@ -144,7 +145,7 @@ export function buildLayoutVariants(photos: PhotoAsset[], pageW = 406, pageH = 2
 }
 
 export function assignPhotos(photos: PhotoAsset[], rects: Rect[], previous?: PlacedPhoto[]): PlacedPhoto[] {
-  const focus = new Map(previous?.map(x => [x.photoId, [x.focusX, x.focusY]]) ?? []);
+  const previousState = new Map(previous?.map(x => [x.photoId, { focusX: x.focusX, focusY: x.focusY, zoom: x.zoom ?? 1 }]) ?? []);
   const areas = rects.map(r => r.w * r.h);
   const maxArea = Math.max(...areas, 1);
   const remaining = new Set(photos.map((_, i) => i));
@@ -163,14 +164,20 @@ export function assignPhotos(photos: PhotoAsset[], rects: Rect[], previous?: Pla
     if (best < 0) continue;
     remaining.delete(best);
     const p = photos[best];
-    const old = focus.get(p.id);
-    result[slot] = { photoId: p.id, rect: r, focusX: old?.[0] ?? 0.5, focusY: old?.[1] ?? 0.5 };
+    const old = previousState.get(p.id);
+    result[slot] = {
+      photoId: p.id,
+      rect: r,
+      focusX: old?.focusX ?? 0.5,
+      focusY: old?.focusY ?? 0.5,
+      zoom: old?.zoom ?? 1,
+    };
   }
   return result.filter(Boolean) as PlacedPhoto[];
 }
 
-export function makeSpread(photos: PhotoAsset[], seed: number): Spread {
-  const variants = buildLayoutVariants(photos, 406, 206, 2, seed, 36);
+export function makeSpread(photos: PhotoAsset[], seed: number, gap = 2): Spread {
+  const variants = buildLayoutVariants(photos, 406, 206, gap, seed, 36);
   return {
     id: crypto.randomUUID(),
     variants,
@@ -180,9 +187,10 @@ export function makeSpread(photos: PhotoAsset[], seed: number): Spread {
   };
 }
 
-export function autoBuild(photos: PhotoAsset[], spreadCount: number): Spread[] {
+export function autoBuild(photos: PhotoAsset[], spreadCount: number, gap = 2): Spread[] {
   if (!photos.length || spreadCount < 1) return [];
   const safeCount = Math.min(spreadCount, photos.length);
+  const safeGap = Math.max(1, Math.min(5, gap));
   const base = Math.floor(photos.length / safeCount);
   const remainder = photos.length % safeCount;
   const spreads: Spread[] = [];
@@ -191,7 +199,7 @@ export function autoBuild(photos: PhotoAsset[], spreadCount: number): Spread[] {
     const count = base + (i < remainder ? 1 : 0);
     const group = photos.slice(idx, idx + count);
     idx += count;
-    spreads.push(makeSpread(group, Date.now() + i * 911));
+    spreads.push(makeSpread(group, Date.now() + i * 911, safeGap));
   }
   return spreads;
 }
