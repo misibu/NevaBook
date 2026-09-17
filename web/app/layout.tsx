@@ -3,6 +3,7 @@ import { SiteHeader } from "@/components/SiteHeader";
 import { siteConfig } from "@/lib/site";
 import "./globals.css";
 import "./premium-v2.css";
+import "./editor-viewport-fix.css";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteConfig.url),
