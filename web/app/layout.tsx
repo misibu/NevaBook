@@ -2,12 +2,13 @@ import type { Metadata } from "next";
 import { SiteHeader } from "@/components/SiteHeader";
 import { siteConfig } from "@/lib/site";
 import "./globals.css";
+import "./premium-v2.css";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteConfig.url),
-  title: { default: "Neva-Book — фотокниги онлайн", template: "%s | Neva-Book" },
+  title: { default: "Нева-Бук — фотокниги, печать и реставрация", template: "%s | Нева-Бук" },
   description: siteConfig.description,
-  openGraph: { title: "Neva-Book", description: siteConfig.description, type: "website", locale: "ru_RU" },
+  openGraph: { title: "Нева-Бук", description: siteConfig.description, type: "website", locale: "ru_RU" },
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
@@ -16,7 +17,11 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
       <body>
         <SiteHeader />
         {children}
-        <footer className="footer">© {new Date().getFullYear()} Neva-Book · Фотокниги, переплёт и реставрация</footer>
+        <footer className="footer premiumFooter">
+          <strong>НЕВА-БУК</strong>
+          <span>Фотокниги · Печать на холсте · Переплёт · Реставрация фотографий</span>
+          <small>© {new Date().getFullYear()} Neva-Book</small>
+        </footer>
       </body>
     </html>
   );
