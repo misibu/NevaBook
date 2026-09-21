@@ -105,7 +105,21 @@ async function convertHeic(file: File): Promise<ConvertedPhoto> {
 }
 
 async function convertRaw(file: File): Promise<ConvertedPhoto> {
-  const { default: LibRaw } = await import("libraw-wasm");
+  // Keep the ~RAW/WASM runtime out of the main Next.js bundle.
+  // prebuild/predev copies the package runtime to /public/vendor/libraw.
+  const moduleUrl = "/vendor/libraw/index.js";
+  const libRawModule = await import(/* webpackIgnore: true */ moduleUrl);
+  const LibRaw = libRawModule.default as new () => {
+    open(bytes: Uint8Array, settings?: Record<string, unknown>): Promise<void>;
+    imageData(): Promise<{
+      width: number;
+      height: number;
+      colors: number;
+      bits: number;
+      data: Uint8Array | Uint16Array;
+    } | undefined>;
+    dispose(): void;
+  };
   const decoder = new LibRaw();
 
   try {
