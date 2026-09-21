@@ -206,7 +206,7 @@ async function prepareRaw(file: File): Promise<PreparedPhoto> {
       if (thumb.format === "jpeg") {
         return {
           original: file,
-          preview: new Blob([thumb.data], { type: "image/jpeg" }),
+          preview: new Blob([Uint8Array.from(thumb.data).buffer], { type: "image/jpeg" }),
           width: thumb.width,
           height: thumb.height,
           sourceFormat: sourceFormat(file),
