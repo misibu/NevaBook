@@ -187,9 +187,19 @@ export function makeSpread(photos: PhotoAsset[], seed: number, gap = 2): Spread 
   };
 }
 
+export function makeEmptySpread(seed = Date.now()): Spread {
+  return {
+    id: crypto.randomUUID(),
+    variants: [],
+    layoutIndex: 0,
+    seed,
+    items: [],
+  };
+}
+
 export function autoBuild(photos: PhotoAsset[], spreadCount: number, gap = 2): Spread[] {
-  if (!photos.length || spreadCount < 1) return [];
-  const safeCount = Math.min(spreadCount, photos.length);
+  if (spreadCount < 1) return [];
+  const safeCount = Math.max(1, spreadCount);
   const safeGap = Math.max(1, Math.min(5, gap));
   const base = Math.floor(photos.length / safeCount);
   const remainder = photos.length % safeCount;
@@ -199,7 +209,9 @@ export function autoBuild(photos: PhotoAsset[], spreadCount: number, gap = 2): S
     const count = base + (i < remainder ? 1 : 0);
     const group = photos.slice(idx, idx + count);
     idx += count;
-    spreads.push(makeSpread(group, Date.now() + i * 911, safeGap));
+    spreads.push(group.length
+      ? makeSpread(group, Date.now() + i * 911, safeGap)
+      : makeEmptySpread(Date.now() + i * 911));
   }
   return spreads;
 }
