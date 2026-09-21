@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "predev": "node scripts/copy-libraw.mjs",
+    "prebuild": "node scripts/copy-libraw.mjs"
   },
   "dependencies": {
     "@builder.io/sdk-react-nextjs": "latest",
