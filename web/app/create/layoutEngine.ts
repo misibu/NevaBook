@@ -4,6 +4,8 @@ export type PhotoAsset = {
   url: string;
   width: number;
   height: number;
+  sourceFormat?: string;
+  previewKind?: "original" | "embedded" | "generated";
 };
 
 export type Rect = { x: number; y: number; w: number; h: number };
