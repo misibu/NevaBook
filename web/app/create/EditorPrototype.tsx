@@ -2,7 +2,7 @@
 
 import { ChangeEvent, PointerEvent as ReactPointerEvent, useEffect, useMemo, useRef, useState } from "react";
 import { assignPhotos, autoBuild, buildLayoutVariants, makeEmptySpread, PhotoAsset, Spread } from "./layoutEngine";
-import { convertPhotoToJpeg, PHOTO_ACCEPT } from "./imageConversion";
+import { preparePhotoForEditor, PHOTO_ACCEPT } from "./imageConversion";
 
 type FilterMode = "all" | "unused";
 type Snapshot = { spreads: Spread[]; currentSpread: number };
@@ -45,6 +45,8 @@ export function EditorPrototype() {
   const [redoStack, setRedoStack] = useState<Snapshot[]>([]);
   const [dragPhotoId, setDragPhotoId] = useState<string | null>(null);
   const [converting, setConverting] = useState(false);
+  const originalFiles = useRef(new Map<string, File>());
+  const previewUrls = useRef<string[]>([]);
   const cropDrag = useRef<{ itemIndex: number; x: number; y: number; focusX: number; focusY: number } | null>(null);
   const initialized = useRef(false);
 
@@ -60,6 +62,14 @@ export function EditorPrototype() {
     + (coverType === "fabric" ? FABRIC_EXTRA : 0)
     + Math.max(0, actualSpreadCount - 5) * EXTRA_SPREAD
   ), [bookSize, coverType, actualSpreadCount]);
+
+  useEffect(() => {
+    return () => {
+      previewUrls.current.forEach(url => URL.revokeObjectURL(url));
+      previewUrls.current = [];
+      originalFiles.current.clear();
+    };
+  }, []);
 
   useEffect(() => {
     if (initialized.current) return;
@@ -129,34 +139,48 @@ export function EditorPrototype() {
     if (!files.length || converting) return;
 
     setConverting(true);
-    const prepared: PhotoAsset[] = [];
+    let added = 0;
     const failed: string[] = [];
 
     for (let index = 0; index < files.length; index++) {
       const file = files[index];
-      setStatus(`Конвертация ${index + 1} из ${files.length}: ${file.name}`);
+      setStatus(`Подготовка превью ${index + 1} из ${files.length}: ${file.name}`);
+
       try {
-        const converted = await convertPhotoToJpeg(file);
-        prepared.push({
-          id: crypto.randomUUID(),
-          name: converted.file.name,
-          url: URL.createObjectURL(converted.file),
-          width: converted.width,
-          height: converted.height,
-        });
+        const prepared = await preparePhotoForEditor(file);
+        const id = crypto.randomUUID();
+        const previewUrl = URL.createObjectURL(prepared.preview);
+
+        // Keep the untouched source file for the future S3/original-upload stage.
+        originalFiles.current.set(id, prepared.original);
+        previewUrls.current.push(previewUrl);
+
+        const asset: PhotoAsset = {
+          id,
+          name: prepared.original.name,
+          url: previewUrl,
+          width: prepared.width,
+          height: prepared.height,
+          sourceFormat: prepared.sourceFormat,
+          previewKind: prepared.previewKind,
+        };
+
+        // Add progressively: common JPG/PNG/WebP files appear without waiting
+        // for the rest of a large selection to finish.
+        setPhotos(previous => [...previous, asset]);
+        added += 1;
       } catch (error) {
-        console.error("Photo conversion failed", file.name, error);
+        console.error("Photo preview preparation failed", file.name, error);
         failed.push(file.name);
       }
     }
 
-    setPhotos(previous => [...previous, ...prepared]);
     setConverting(false);
 
     if (failed.length) {
-      setStatus(`Готово: ${prepared.length} JPG. Не удалось обработать: ${failed.slice(0, 3).join(", ")}${failed.length > 3 ? "…" : ""}`);
+      setStatus(`Добавлено: ${added}. Не удалось подготовить: ${failed.slice(0, 3).join(", ")}${failed.length > 3 ? "…" : ""}`);
     } else {
-      setStatus(`Готово: ${prepared.length} фото преобразовано в JPG и добавлено в фотобанк.`);
+      setStatus(`Добавлено ${added} фото. Оригиналы не изменены; конструктор использует быстрые превью.`);
     }
   }
 
@@ -472,7 +496,7 @@ export function EditorPrototype() {
           <div className="bankHeading">
             <div><span>ФОТОГРАФИИ</span><strong>{photos.length}</strong></div>
             <label className={`editorUploadBtn ${converting ? "disabled" : ""}`}>
-              {converting ? "Конвертация…" : "+ Добавить"}
+              {converting ? "Подготовка…" : "+ Добавить"}
               <input hidden multiple disabled={converting} accept={PHOTO_ACCEPT} type="file" onChange={addPhotos} />
             </label>
           </div>
@@ -499,8 +523,8 @@ export function EditorPrototype() {
             ))}
             {!photos.length && (
               <div className="emptyBank">
-                Загрузите JPEG, PNG, HEIC или RAW.<br />
-                Перед появлением здесь файлы автоматически преобразуются в JPG.
+                Загрузите JPG, PNG, WebP, HEIC или RAW.<br />
+                Оригинал сохраняется без изменений; редактор показывает быстрое превью.
               </div>
             )}
           </div>
@@ -534,7 +558,7 @@ export function EditorPrototype() {
               <div className="editorStartCard">
                 <span>NEVA-BOOK EDITOR</span>
                 <h1>Соберите первую<br />раскладку.</h1>
-                <p>Добавьте фотографии. Каждый файл сначала преобразуется в JPG, после чего его можно перетащить на разворот.</p>
+                <p>Добавьте фотографии. JPG, PNG и WebP открываются напрямую; для HEIC и RAW создаётся только рабочее превью.</p>
                 <button onClick={runAutoBuild}>✦ Авторазмещение</button>
                 <small>До 15 разворотов. Промежуток между фото регулируется от 1 до 5 мм.</small>
               </div>
@@ -657,7 +681,7 @@ export function EditorPrototype() {
             <span className="qualityDot" />
             <div>
               <strong>Контроль качества</strong>
-              <p>JPEG создаётся до попадания фото в фотобанк. Проверку эффективного DPI подключим к размеру конкретной ячейки.</p>
+              <p>Оригинальный файл сохраняется без изменений. Для RAW используется встроенное превью камеры, для HEIC — облегчённое JPEG-превью. Проверку эффективного DPI подключим к оригиналу.</p>
             </div>
           </div>
 
