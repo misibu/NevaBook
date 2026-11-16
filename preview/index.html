@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="Neva-Book — демонстрационный сайт фотокниг, калькулятор и прототип конструктора.">
+  <meta name="robots" content="noindex,nofollow">
+  <title>Neva-Book · Демонстрационная версия</title>
+  <link rel="stylesheet" href="./style.css">
+  <script defer src="./app.js"></script>
+</head>
+<body>
+  <div class="demoBanner"><strong>ТЕСТОВЫЙ СТЕНД</strong><span>Цены демонстрационные · Проекты и фотографии не отправляются на сервер · Заказы отключены</span></div>
+  <header class="siteHeader">
+    <a class="brand" href="#/"><span class="brandMark">NB</span><strong>NEVA-BOOK</strong></a>
+    <nav aria-label="Основное меню">
+      <a data-route="/" href="#/">Главная</a><a data-route="/books" href="#/books">Фотокниги</a><a data-route="/calculator" href="#/calculator">Калькулятор</a>
+    </nav>
+    <a class="button dark headerButton" href="#/create">Создать книгу <span>↗</span></a>
+  </header>
+  <main>
+    <section class="page home active" id="home" data-page="/">
+      <div class="hero">
+        <div class="heroText">
+          <p class="eyebrow">ФОТОКНИГИ, КОТОРЫЕ ОСТАЮТСЯ</p>
+          <h1>Соберите свою историю <em>в настоящую книгу.</em></h1>
+          <p class="lead">Фотографии превращаются в любимые воспоминания на бумаге. Выберите обложку, загрузите снимки и создайте макет онлайн.</p>
+          <div class="actions"><a class="button dark" href="#/create">Создать фотокнигу <span>↗</span></a><a class="button ghost" href="#/calculator">Рассчитать стоимость</a></div>
+          <div class="tinyFeatures"><span>20×20 см</span><span>Фото или ткань</span><span>Макет в браузере</span></div>
+        </div>
+        <div class="heroArt" aria-hidden="true">
+          <div class="lightAura"></div><div class="book back"><span>N<br>BOOK</span></div><div class="book front"><small>ФОТОКНИГА</small><span>YOUR<br>STORY</span><small>2026</small></div>
+          <div class="bookSpread"><div class="bookPage left"><div class="mockPhoto"></div></div><div class="bookPage right"><small>ГЛАВА ПЕРВАЯ</small><span>Всё начинается<br>с одного кадра.</span></div></div>
+          <span class="floatingTag first">Твёрдая обложка</span><span class="floatingTag last">300 dpi</span>
+        </div>
+      </div>
+      <section class="benefits"><div><strong>Онлайн</strong><span>конструктор прямо в браузере</span></div><div><strong>20×20</strong><span>первый формат фотокниги</span></div><div><strong>Свой стиль</strong><span>фотообложка или ткань</span></div></section>
+      <div class="subsection">
+        <p class="eyebrow">01 / ВЫБЕРИТЕ ОСНОВУ</p><h2>Книга начинается <em>с обложки.</em></h2>
+        <div class="coverGrid">
+          <article class="coverCard"><div class="coverVisual photo"><div class="miniBook"><span>MY<br>STORY</span></div></div><h3>Фотообложка</h3><p>Ваша фотография или индивидуальный дизайн на твёрдой обложке.</p><a href="#/calculator">Узнать стоимость ↗</a></article>
+          <article class="coverCard"><div class="coverVisual fabric"><div class="miniBook"><span>N</span></div></div><h3>Тканевая обложка</h3><p>Фактурный материал, спокойные цвета и лаконичный дизайн.</p><a href="#/calculator">Узнать стоимость ↗</a></article>
+        </div>
+      </div>
+      <section class="darkStripe"><div><p class="eyebrow">02 / СОБЕРИТЕ САМИ</p><h2>Ваша история,<br><em>ваш разворот.</em></h2><p>Загружайте фотографии и пробуйте разные композиции. Прототип конструктора уже доступен.</p><a class="button light" href="#/create">Открыть конструктор ↗</a></div><div class="darkDemo"><div class="mockEditor"><span>ФОТОГРАФИИ</span><div class="mockTiles"><i></i><i></i><i></i><i></i></div><div class="mockSpread"><i></i><i></i></div><div class="mockTimeline"><i></i><i></i><i></i></div></div></div></section>
+      <div class="subsection finalCta"><p class="eyebrow">НЕВА БУК</p><h2>Память заслуживает <em>хорошей бумаги.</em></h2><p>Начните с макета. Расчёт пока примерный, а оформление заказов подключим после согласования прайса.</p><a class="button dark" href="#/create">Создать фотокнигу ↗</a></div>
+    </section>
+
+    <section class="page" id="books" data-page="/books">
+      <div class="pageTitle"><p class="eyebrow">КАТАЛОГ</p><h1>Фотокниги</h1><p class="lead">Первым запускаем квадратный формат 20×20 см. Два варианта обложки.</p></div>
+      <div class="coverGrid contentContainer">
+        <article class="coverCard"><div class="coverVisual photo"><div class="miniBook"><span>20×20</span></div></div><h3>Фотокнига 20×20</h3><p>Фотообложка, от 10 до 40 разворотов, тестовый расчёт стоимости.</p><a href="#/calculator">Рассчитать ↗</a></article>
+        <article class="coverCard"><div class="coverVisual fabric"><div class="miniBook"><span>N</span></div></div><h3>Тканевая обложка</h3><p>Тот же формат и развороты с дополнительной стоимостью обложки.</p><a href="#/create">Создать макет ↗</a></article>
+      </div>
+    </section>
+
+    <section class="page" id="calculator" data-page="/calculator">
+      <div class="pageTitle"><p class="eyebrow">NEVA-BOOK / КАЛЬКУЛЯТОР</p><h1>Сколько стоит <em>ваша фотокнига?</em></h1><p class="lead">Настройте параметры, а сумма пересчитается мгновенно.</p><div class="warning"><strong>ДЕМО.</strong> Цены условные для проверки механики калькулятора, не являются офертой. Заказы отключены.</div></div>
+      <div class="calcLayout contentContainer">
+        <div class="calcPanel">
+          <div class="calcField"><p class="eyebrow">01 / ФОРМАТ</p><h2>20×20 см</h2><p>Первый производственный формат</p><span class="formatChip">Квадратная фотокнига</span></div>
+          <div class="calcField"><p class="eyebrow">02 / ОБЛОЖКА</p><h2>Тип обложки</h2><div class="coverOptions"><button id="photoCover" class="coverOption selected" data-cover="photo" aria-pressed="true"><span class="swatch photo">ФОТО</span><strong>Фотообложка</strong><small>Без доплаты</small></button><button id="fabricCover" class="coverOption" data-cover="fabric" aria-pressed="false"><span class="swatch fabric">N</span><strong>Тканевая</strong><small>+450 ₽ (демо)</small></button></div></div>
+          <div class="calcField"><p class="eyebrow">03 / РАЗВОРОТЫ</p><div class="fieldTitle"><h2>Количество разворотов</h2><output id="spreadValue" for="spreadRange">10</output></div><input id="spreadRange" type="range" min="10" max="40" step="1" value="10"><div class="rangeNotes"><span>10</span><span>40</span></div><p>10 разворотов в базовой стоимости, далее +90 ₽ за разворот (демо).</p></div>
+          <div class="calcField"><p class="eyebrow">04 / ТИРАЖ</p><div class="fieldTitle"><h2>Экземпляры</h2><output id="qtyValue" for="qtyRange">1</output></div><input id="qtyRange" type="range" min="1" max="25" step="1" value="1"><div class="rangeNotes"><span>1</span><span>25</span></div><p>Тестовые скидки: от 3 экземпляров 5%, от 10 экземпляров 10%.</p></div>
+        </div>
+        <aside class="calcReceipt" aria-live="polite"><p class="eyebrow">ВАШ РАСЧЁТ · ДЕМО</p><div class="receiptBook">NEVA<br>BOOK</div><h2>Фотокнига 20×20</h2>
+          <dl><div><dt>Обложка</dt><dd id="sumCover">Фотообложка</dd></div><div><dt>Развороты</dt><dd id="sumSpreads">10</dd></div><div><dt>Базовая цена</dt><dd>1 900 ₽</dd></div><div><dt>Доп. развороты</dt><dd id="sumExtra">0 ₽</dd></div><div><dt>Доплата за обложку</dt><dd id="sumCoverExtra">0 ₽</dd></div><div><dt>Тираж</dt><dd id="sumQty">1</dd></div><div><dt>Скидка</dt><dd id="sumDiscount">0%</dd></div><div><dt>За экземпляр</dt><dd id="sumUnit">1 900 ₽</dd></div></dl>
+          <p class="totalLabel">Примерная сумма</p><div class="total" id="sumTotal">1 900 ₽</div><p class="receiptFineprint">Тестовые цены, доставка и налоги не включены. Для реальных заказов нужен утверждённый прайс.</p><a class="button light wide" href="#/create">Перейти в конструктор ↗</a>
+        </aside>
+      </div>
+    </section>
+
+    <section class="page" id="create" data-page="/create">
+      <div class="pageTitle compactTitle"><p class="eyebrow">NEVA-BOOK / КОНСТРУКТОР</p><h1>Создайте <em>свой разворот.</em></h1><p class="lead">Демонстрация локальной загрузки и раскладки. Фото не передаются в интернет и не сохраняются между сессиями.</p></div>
+      <div class="editor">
+        <aside class="editorSidebar"><h2>Фотографии</h2><label class="button dark uploadButton" for="photoUpload">+ Добавить фото<input id="photoUpload" type="file" accept="image/*" multiple hidden></label><p class="uploadTip">Кликните по миниатюре, чтобы добавить фото в следующий слот. Или перетащите фото на разворот.</p><div class="photoGrid" id="photoGrid"><p class="emptyGrid">Здесь появятся ваши фотографии.</p></div></aside>
+        <div class="editorCanvas"><div class="editorToolbar"><strong>Разворот 1</strong><span>406×206 мм · 3 мм подрезка</span><button type="button" class="clearButton" id="clearLayout">Очистить макет</button></div><div class="spreadCanvas" id="spreadCanvas"><div class="spreadSlot" data-slot="0"><span>Добавьте фото</span></div><div class="spreadSlot" data-slot="1"><span>Добавьте фото</span></div><div class="spreadSlot" data-slot="2"><span>Добавьте фото</span></div><div class="spreadSlot" data-slot="3"><span>Добавьте фото</span></div><div class="centerFold"></div></div><div class="editorBottom"><span>Предпросмотр первого разворота</span><a href="#/calculator">Рассчитать стоимость ↗</a></div><div class="warning small">Макет в этом демо только в памяти браузера. Сохранение проектов, экспорт для печати и оформление заказа ещё не подключены.</div></div>
+      </div>
+    </section>
+  </main>
+  <footer><span>© NEVA-BOOK · DEMO</span><span>Фотокниги · Переплёт · Реставрация</span><a href="https://github.com/misibu/NevaBook">Исходный код ↗</a></footer>
+</body>
+</html>
