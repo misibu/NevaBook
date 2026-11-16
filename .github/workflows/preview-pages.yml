@@ -1,0 +1,56 @@
+name: Neva-Book preview (GitHub Pages)
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'preview/**'
+      - '.github/workflows/preview-pages.yml'
+  pull_request:
+    paths:
+      - 'preview/**'
+      - '.github/workflows/preview-pages.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  check:
+    name: Validate static preview
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: JavaScript syntax
+        run: node --check preview/app.js
+      - name: Check required assets
+        run: |
+          test -s preview/index.html
+          test -s preview/style.css
+          test -s preview/app.js
+          grep -q 'КАЛЬКУЛЯТОР' preview/index.html
+          grep -q 'КОНСТРУКТОР' preview/index.html
+      - uses: actions/upload-artifact@v4
+        with:
+          name: neva-book-static-preview
+          path: preview/
+  deploy:
+    name: Publish GitHub Pages
+    needs: check
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: preview
+      - id: deployment
+        uses: actions/deploy-pages@v4

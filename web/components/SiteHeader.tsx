@@ -10,7 +10,7 @@ export function SiteHeader() {
       <nav className="mainNav" aria-label="Основное меню">
         <Link href="/fotoknigi">Фотокниги</Link>
         <Link href="/oblozhki">Обложки</Link>
-        <Link href="/ceny">Цены</Link>
+        <Link href="/calculator">Калькулятор</Link>
         <Link href="/blog">Блог</Link>
       </nav>
       <Link className="headerCta" href="/create">Создать книгу</Link>
